@@ -1,6 +1,6 @@
 # Mini RAG + Reranker Sprint
 
-This project implements a small Question-Answering service over a tiny set of industrial and machine safety documents. It starts with a basic similarity search (baseline) and then enhances it with a learned reranker to improve the relevance of retrieved information. The service provides short, extractive answers grounded in the retrieved text, along with citations.
+This project implements a small Question-Answering service over a tiny set of industrial and machine safety documents. It starts with a basic similarity search (baseline) and then enhances it with a hybrid and learned reranker to improve the relevance of retrieved information. The service provides short, extractive answers grounded in the retrieved text, along with citations.
 
 ## Features
 
@@ -16,20 +16,12 @@ This project implements a small Question-Answering service over a tiny set of in
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/mitanshu-2004/MiniRag-Reranker.git
     cd RAG
     ```
 
-2.  **Create a virtual environment and install dependencies:**
-    ```bash
-    python -m venv venv
-    .venv\Scripts\activate  # On Windows
-    # source venv/bin/activate # On macOS/Linux
-    pip install -r requirements.txt
-    ```
-    
 
-3.  **Prepare Data and Ingest:**
+2.  **Prepare Data and Ingest:**
     Ensure the `industrial-safety-pdfs.zip` and `sources.json` are in the `data/` directory. The `ingest.py` script will automatically unzip the PDFs, chunk them, create embeddings, and train the reranker model.
     ```bash
     python ingest.py
@@ -88,7 +80,7 @@ curl -X POST "http://127.0.0.1:8000/ask" \
          }'
 ```
 
-### Tricky Question (comparing baseline vs. learned reranker)
+### Tricky Question (comparing baseline vs. hybrid reranker vs. learned reranker)
 
 ```bash
 # Baseline search
@@ -98,6 +90,15 @@ curl -X POST "http://127.0.0.1:8000/ask" \
            "query": "Explain the differences between PLd and PLe in ISO 13849-1.",
            "top_k": 5,
            "mode": "baseline"
+         }'
+
+# Baseline search
+curl -X POST "http://127.0.0.1:8000/ask" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "query": "Explain the differences between PLd and PLe in ISO 13849-1.",
+           "top_k": 5,
+           "mode": "hybrid"
          }'
 
 # Learned reranker
@@ -110,14 +111,7 @@ curl -X POST "http://127.0.0.1:8000/ask" \
          }'
 ```
 
-## Results Table (Placeholder)
-
-| Question | Baseline Answer | Baseline Contexts | Learned Answer | Learned Contexts | Improvement (Y/N) |
-|----------|-----------------|-------------------|----------------|------------------|-------------------|
-| 1        |                 |                   |                |                  |                   |
-| 2        |                 |                   |                |                  |                   |
-| ...      |                 |                   |                |                  |                   |
 
 ## What I Learned
 
-This sprint provided valuable insights into building a robust RAG system. A key learning was the significant impact of reranking on the quality of retrieved information. While a baseline vector search provides a good starting point, a learned reranker, even a simple logistic regression model, can dramatically improve the relevance of the top results by incorporating multiple features beyond just vector similarity. This directly leads to more accurate and grounded answers. Additionally, implementing extractive answer generation and an abstention mechanism is crucial for delivering a reliable and user-friendly Q&A service, ensuring that only confident and directly supported answers are provided. The modular design, separating ingestion, search methods, and training, proved essential for managing complexity and allowing for iterative improvements.
+This sprint gave me a clear understanding of how to build a better RAG system. I learned that reranking plays a big role in improving search results. A basic vector search is a good start, but even a simple reranker, like logistic regression, makes the answers more relevant by looking at more than just similarity scores. Adding extractive answer generation and a way to skip uncertain answers made the system more reliable, since it only returns answers that are supported by the data. Breaking the system into separate parts for ingestion, search, and training also made it easier to build and improve step by step.

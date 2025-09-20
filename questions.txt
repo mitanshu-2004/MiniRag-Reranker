@@ -1,8 +1,0 @@
-1. According to the EU Machinery Regulation 2023/1230, what are the essential health and safety requirements for the design and construction of machinery?
-2. What are the key differences between Performance Level 'd' (PLd) and Performance Level 'e' (PLe) as defined in EN ISO 13849-1, and what are the typical architectural requirements for each?
-3. Describe the three main types of machine guards that OSHA 3170 recommends for safeguarding equipment and preventing amputations.
-4. What are the primary hazards associated with industrial robots as outlined in the Hokuyo USA whitepaper and ISO 10218?
-5. How does the Eaton Safety Manual explain the relationship and key differences between the standards EN ISO 13849-1 and IEC 62061?
-6. What are the 'Six Steps to a Safe Machine' as proposed by the SICK guide, with a particular focus on the risk assessment phase?
-7. Using the IFA SISTEMA Cookbook 1 as a reference, what is the general process for calculating the MTTFd (Mean Time To Dangerous Failure) of a safety-related input device?
-8. What is Rockwell's guidance on the transition timeline from the old Machinery Directive (2006/42/EC) to the new Regulation (EU) 2023/1230?
