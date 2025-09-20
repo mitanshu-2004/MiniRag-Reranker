@@ -3,8 +3,15 @@ import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
-from methods.features import extract_features
-from ..questions import training_data
+from .questions import training_data
+
+def extract_features(q, m, vs, fs):
+    th = int(any(w.lower() in m.get("doc_title", "").lower() for w in q.split()))
+    ql = len(q.split())
+    cl = len(m.get("content", "").split())
+    itc = int(m.get("chunk_index", 0) == 0)
+    return [vs, fs, th, ql, cl, itc]
+
 
 def get_candidates(q, qe, mod, coll, dp="chunks.db", k=20):
     v_res = coll.query(query_embeddings=[qe], n_results=k)
@@ -27,9 +34,9 @@ def label_candidate(c, kw):
     txt = c["content"].lower()
     return int(any(k.lower() in txt for k in kw))
 
-def train_model(mod, cp, dp, msp):
+def train_model(model, chroma_path, db_path, model_save_path):
     
-    cli = chromadb.PersistentClient(path=cp, settings=Settings(anonymized_telemetry=False))
+    cli = chromadb.PersistentClient(path=chroma_path, settings=Settings(anonymized_telemetry=False))
     coll = cli.get_collection("safety_docs")
     
 
@@ -39,8 +46,8 @@ def train_model(mod, cp, dp, msp):
         q = item["query"]; kw = item["keywords"]
         print(f"Processing query: {q}")
 
-        qe = mod.encode([q]).tolist()[0]
-        cands = get_candidates(q, qe, mod, coll, dp=dp)
+        qe = model.encode([q]).tolist()[0]
+        cands = get_candidates(q, qe, model, coll, dp=db_path)
 
         for meta, vs, fs in cands:
             feats = extract_features(q, meta, vs, fs)
@@ -50,6 +57,6 @@ def train_model(mod, cp, dp, msp):
     clf = LogisticRegression(class_weight="balanced", max_iter=1000)
     clf.fit(X, y)
 
-    with open(msp, "wb") as f: pickle.dump(clf, f)
+    with open(model_save_path, "wb") as f: pickle.dump(clf, f)
 
-    print(f"✅ Reranker model trained and saved as {msp}")
+    print(f"✅ Reranker model trained and saved as {model_save_path}\n")

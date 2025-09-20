@@ -1,6 +1,6 @@
 import sqlite3, re, pickle, numpy as np
-from sentence_transformers import SentenceTransformer
 from sklearn.preprocessing import MinMaxScaler
+from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 import chromadb
 from chromadb.config import Settings
@@ -14,18 +14,18 @@ def extract_features(q, m, vs, fs):
     return [vs, fs, th, ql, cl, itc]
 
 class DocSearch:
-    def __init__(self, mod: SentenceTransformer, dp: str, cp: str, mf: str, a=0.6):
-        self.mod = mod
-        self.dp = dp
+    def __init__(self, model:SentenceTransformer, db_path: str, chroma_path: str, model_file: str, a=0.6):
+        self.model = model
+        self.db_path = db_path
         self.a = a
-        self.mf = mf
+        self.model_file = model_file
         self.scl = MinMaxScaler()
 
-        cli = chromadb.PersistentClient(path=cp, settings=Settings(anonymized_telemetry=False))
+        cli = chromadb.PersistentClient(path=chroma_path, settings=Settings(anonymized_telemetry=False))
         self.coll = cli.get_collection("safety_docs")
 
         try:
-            with open(mf, "rb") as f: self.clf: Optional[LogisticRegression] = pickle.load(f)
+            with open(model_file, "rb") as f: self.clf: Optional[LogisticRegression] = pickle.load(f)
         except FileNotFoundError: self.clf = None
 
     def get_vector_candidates(self, qe, k=5):
@@ -35,7 +35,7 @@ class DocSearch:
         return list(zip(ids, docs, metas, vs))
 
     def get_fts_candidates(self, q, k=30):
-        con = sqlite3.connect(self.dp); cur = con.cursor(); con.row_factory = sqlite3.Row
+        con = sqlite3.connect(self.db_path); cur = con.cursor(); con.row_factory = sqlite3.Row
         qc = re.sub(r"[^\w\s]", "", q); fts_q = f'"{qc}"'
         sql = f"""SELECT c.id, c.doc_name, c.doc_title, c.doc_url, c.chunk_index, c.page_num, c.content, bm25(chunks_fts) AS score FROM chunks c JOIN chunks_fts fts ON c.id = fts.rowid WHERE chunks_fts MATCH ? ORDER BY score LIMIT {k}"""
         cur.execute(sql, (fts_q,)); rows = cur.fetchall(); con.close()
@@ -75,17 +75,17 @@ class DocSearch:
             y = np.array([1 if i<len(X)//2 else 0 for i in range(len(X))])
             self.clf = LogisticRegression(class_weight="balanced", max_iter=1000)
             self.clf.fit(X,y)
-            with open(self.mf,"wb") as f: pickle.dump(self.clf,f)
+            with open(self.model_file,"wb") as f: pickle.dump(self.clf,f)
 
         probs = self.clf.predict_proba(X)[:,1]
         reranked = sorted(zip(cands, probs), key=lambda x:x[1], reverse=True)
         return [(c[0], c[1], c[2], p) for c,p in reranked]
 
-    def query_docs(self, q, k=5, ul=True):
-        qe = self.mod.encode([q]).tolist()[0]
-        vc = self.get_vector_candidates(qe, k=k)
+    def query_docs(self, q, top_k, ul=True):
+        qe = self.model.encode([q]).tolist()[0]
+        vc = self.get_vector_candidates(qe, k=top_k)
         fc = self.get_fts_candidates(q, k=30)
-        hc = self.hybrid_rerank(vc, fc, k=k)
+        hc = self.hybrid_rerank(vc, fc, k=top_k)
 
         if ul:
             final = self.learned_rerank([(idx,c["doc"],c["meta"],c["hybrid_score"]) for idx,c in enumerate(hc)], q)

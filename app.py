@@ -36,10 +36,10 @@ def ask(req: AskRequest):
     k = req.top_k
 
     if m == "baseline":
-        res = baseline_search(model=emb_mod, query=q, top_k=k, chroma_path=CHROMA_PATH)
+        res = baseline_search(model=emb_mod, q=q, top_k=k, chroma_path=CHROMA_PATH)
     elif m in ["hybrid", "learned"]:
         ul = m == "learned"
-        res = srch.query_docs(q, top_k=k, use_learned=ul)
+        res = srch.query_docs(q, top_k=k, ul=ul)
     else:
         return {"error": "Invalid mode. Choose 'baseline', 'hybrid', or 'learned'."}
 

@@ -3,14 +3,14 @@ from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 from typing import *
 
-def baseline_search(mod: SentenceTransformer, q: str, cp: str, k: int = 5) -> List[Dict]:
+def baseline_search(model: SentenceTransformer, q: str, chroma_path: str, top_k: int ) -> List[Dict]:
     
-    cli = chromadb.PersistentClient(path=cp, settings=Settings(anonymized_telemetry=False))
+    cli = chromadb.PersistentClient(path=chroma_path, settings=Settings(anonymized_telemetry=False))
     coll = cli.get_collection("safety_docs")
 
-    q_emb = mod.encode([q]).tolist()[0]
+    q_emb = model.encode([q]).tolist()[0]
 
-    res = coll.query(query_embeddings=[q_emb], n_results=k)
+    res = coll.query(query_embeddings=[q_emb], n_results=top_k)
     docs, metas, ids, dists = res["documents"][0], res["metadatas"][0], res["ids"][0], res["distances"][0]
 
     v_scores = [1 - d for d in dists]
