@@ -1,33 +1,21 @@
 import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
-from typing import List, Dict
+from typing import *
 
-def baseline_search(model: SentenceTransformer, query: str, chroma_path: str, top_k: int = 5) -> List[Dict]:
+def baseline_search(mod: SentenceTransformer, q: str, cp: str, k: int = 5) -> List[Dict]:
     
-    client = chromadb.PersistentClient(path=chroma_path, settings=Settings(anonymized_telemetry=False))
-    collection = client.get_collection("safety_docs")
+    cli = chromadb.PersistentClient(path=cp, settings=Settings(anonymized_telemetry=False))
+    coll = cli.get_collection("safety_docs")
 
-    query_emb = model.encode([query]).tolist()[0]
+    q_emb = mod.encode([q]).tolist()[0]
 
-    results = collection.query(query_embeddings=[query_emb], n_results=top_k)
-    docs = results["documents"][0]
-    metadatas = results["metadatas"][0]
-    ids = results["ids"][0]
-    distances = results["distances"][0]
+    res = coll.query(query_embeddings=[q_emb], n_results=k)
+    docs, metas, ids, dists = res["documents"][0], res["metadatas"][0], res["ids"][0], res["distances"][0]
 
-    vector_scores = [1 - d for d in distances]
+    v_scores = [1 - d for d in dists]
 
     return [
-        {
-            "doc_id": doc_id,
-            "doc_name": meta.get("doc_name", ""),
-            "doc_title": meta.get("doc_title", ""),
-            "doc_url": meta.get("doc_url", ""),
-            "page_num": meta.get("page_num"),
-            "chunk_index": meta.get("chunk_index"),
-            "score": score,
-            "content": doc
-        }
-        for doc, meta, doc_id, score in zip(docs, metadatas, ids, vector_scores)
+        {"doc_id": did, "doc_name": m.get("doc_name", ""), "doc_title": m.get("doc_title", ""), "doc_url": m.get("doc_url", ""), "page_num": m.get("page_num"), "chunk_index": m.get("chunk_index"), "score": s, "content": d}
+        for d, m, did, s in zip(docs, metas, ids, v_scores)
     ]

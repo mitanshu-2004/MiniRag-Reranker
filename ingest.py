@@ -5,40 +5,27 @@ from train_model.train_learned_reranker import train_model
 from sentence_transformers import SentenceTransformer
 
 def main():
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    DB_PATH = os.path.join(ROOT_DIR, "sql_store", "chunks.db")
-    CHROMA_PATH = os.path.join(ROOT_DIR, "chromadb_store")
-    PDF_DIR = os.path.join(ROOT_DIR, "data", "industrial-safety-pdfs")
-    SOURCES_FILE = os.path.join(ROOT_DIR, "data", "sources.json")
-    MODEL_PATH = os.path.join(ROOT_DIR, "model", "learned_reranker.pkl")
+    r_dir = os.path.dirname(os.path.abspath(__file__))
+    db_p = r_dir + "\\sql_store\\chunks.db"
+    c_path = r_dir + "\\chromadb_store"
+    p_dir = r_dir + "\\data\\industrial-safety-pdfs"
+    s_file = r_dir + "\\data\\sources.json"
+    m_path = r_dir + "\\model\\learned_reranker.pkl"
 
-    if not os.path.exists(DB_PATH) :
-        print("Step 1: Chunking PDFs...")
-        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-        run_pdf_chunking(
-            pdf_dir=PDF_DIR,
-            sources_file=SOURCES_FILE,
-            db_path=DB_PATH
-        )
-    if not os.path.exists(CHROMA_PATH) :
-        print("\nStep 2: Building ChromaDB embeddings...")
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-        build_chroma(
-            db_path=DB_PATH,
-            chroma_path=CHROMA_PATH,
-            model=model
-        )
-    if not os.path.exists(MODEL_PATH) :
-        print("\nStep 3: Training the model.")
-        os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
-        train_model(
-            model=model,
-            chroma_path=CHROMA_PATH,
-            db_path=DB_PATH,
-            model_save_path=MODEL_PATH
-        )
+    if not os.path.exists(db_p) :
+        print("Step 1: Chunking PDFs...\n")
+        os.makedirs(os.path.dirname(db_p), exist_ok=True)
+        run_pdf_chunking(pdf_dir=p_dir, sources_file=s_file, db_path=db_p)
+    if not os.path.exists(c_path) :
+        print("\nStep 2: Building ChromaDB embeddings...\n")
+        mod = SentenceTransformer("all-MiniLM-L6-v2")
+        build_chroma(db_path=db_p, chroma_path=c_path, model=mod)
+    if not os.path.exists(m_path) :
+        print("\nStep 3: Training the model.\n")
+        os.makedirs(os.path.dirname(m_path), exist_ok=True)
+        train_model(model=mod, chroma_path=c_path, db_path=db_p, model_save_path=m_path)
 
-    print("\nPipeline completed successfully!")
+    print("\nPipeline completed successfully!\n")
 
 if __name__ == "__main__":
     main()

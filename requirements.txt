@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+sentence-transformers
+chromadb
+scikit-learn
+tqdm
+PyPDF2
+pycryptodome
