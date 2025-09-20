@@ -16,7 +16,7 @@ This project implements a small Question-Answering service over a tiny set of in
 
 1.  **Clone the repository:**
     ```bash
-    git clone [<your-repo-url>](https://github.com/mitanshu-2004/MiniRag-Reranker.git)
+    git clone[https://github.com/mitanshu-2004/MiniRag-Reranker.git](https://github.com/mitanshu-2004/MiniRag-Reranker.git)
     cd RAG
     ```
 
