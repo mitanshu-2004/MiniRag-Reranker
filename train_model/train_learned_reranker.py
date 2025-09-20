@@ -4,7 +4,7 @@ from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 from methods.features import extract_features
-from .training_queries import training_data
+from ..questions import training_data
 
 def get_candidates(q, qe, mod, coll, dp="chunks.db", k=20):
     v_res = coll.query(query_embeddings=[qe], n_results=k)
