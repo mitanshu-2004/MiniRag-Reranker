@@ -20,16 +20,8 @@ This project implements a small Question-Answering service over a tiny set of in
     cd RAG
     ```
 
-2.  **Create a virtual environment and install dependencies:**
-    ```bash
-    python -m venv venv
-    .venv\Scripts\activate  # On Windows
-    # source venv/bin/activate # On macOS/Linux
-    pip install -r requirements.txt
-    ```
-    
 
-3.  **Prepare Data and Ingest:**
+2.  **Prepare Data and Ingest:**
     Ensure the `industrial-safety-pdfs.zip` and `sources.json` are in the `data/` directory. The `ingest.py` script will automatically unzip the PDFs, chunk them, create embeddings, and train the reranker model.
     ```bash
     python ingest.py
